@@ -23,14 +23,16 @@ Create a new sheet called "products", and add an initial row of column headers:
   + `description`
   + `price`
   + `url`
+  + `created_at`
 
 **Orders Sheet**
 
 Create a new sheet called "orders", and add an initial row of column headers:
 
+  + `id`
+  + `product_id`
   + `user_email`
-  + `product_info`
-  + `order_at`
+  + `created_at`
 
 
 **Seeding the Database**
