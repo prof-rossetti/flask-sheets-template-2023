@@ -160,9 +160,16 @@ class SpreadsheetService:
     #        return None
 
 
+    def get_products(self):
+        _, products = self.get_records("products")
+        return products
+
+    def get_orders(self):
+        _, orders = self.get_records("orders")
+        return records
 
     def get_user_orders(self, user_email):
-        sheet, orders = self.get_records("orders")
+        _, orders = self.get_records("orders")
         return [order for order in orders if order["user_email"] == user_email]
 
 

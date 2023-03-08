@@ -49,23 +49,22 @@ def test_get_sheet(ss):
     sheet = ss.get_sheet("products")
     assert isinstance(sheet, Worksheet)
 
-#def test_get_records(ss):
-#    sheet, products = ss.get_records("products")
-#    assert isinstance(sheet, Worksheet)
-#    assert isinstance(products, list)
+@pytest.mark.skipif(CI_ENV, reason=CI_SKIP_MESSAGE)
+def test_get_records(ss):
+    sheet, products = ss.get_records("products")
+    assert isinstance(sheet, Worksheet)
+    assert isinstance(products, list)
 
 @pytest.mark.skipif(CI_ENV, reason=CI_SKIP_MESSAGE)
 def test_get_products(ss):
-    sheet, products = ss.get_records("products")
-    assert isinstance(sheet, Worksheet)
+    products = ss.get_products()
     assert len(products) == 3
     assert [p["name"] for p in products] == ["Strawberries", "Cup of Tea", "Textbook"]
     assert [p["id"] for p in products] == [1,2,3]
 
 @pytest.mark.skipif(CI_ENV, reason=CI_SKIP_MESSAGE)
 def test_get_orders(ss):
-    sheet, orders = ss.get_records("orders")
-    assert isinstance(sheet, Worksheet)
+    orders = ss.get_orders()
     assert not any(orders)
 
 
