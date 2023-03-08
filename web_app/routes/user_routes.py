@@ -14,7 +14,7 @@ user_routes = Blueprint("user_routes", __name__)
 def orders():
     print("USER ORDERS...")
     current_user = session.get("current_user")
-    service = current_app.config["FIREBASE_SERVICE"]
+    service = current_app.config["SPREADSHEET_SERVICE"]
     orders = service.fetch_user_orders(current_user["email"])
     return render_template("user_orders.html", orders=orders)
 
@@ -36,7 +36,7 @@ def create_order():
 
     current_user = session.get("current_user")
 
-    service = current_app.config["FIREBASE_SERVICE"]
+    service = current_app.config["SPREADSHEET_SERVICE"]
 
     try:
         service.create_order(user_email=current_user["email"], product_info=product_info)

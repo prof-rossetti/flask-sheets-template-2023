@@ -7,7 +7,7 @@ from flask import Flask
 from authlib.integrations.flask_client import OAuth
 
 from app import APP_ENV, APP_VERSION
-from app.firebase_service import FirebaseService
+from app.spreadsheet_service import SpreadsheetService
 
 from web_app.routes.home_routes import home_routes
 from web_app.routes.auth_routes import auth_routes
@@ -35,10 +35,10 @@ GA_TRACKER_ID = os.getenv("GA_TRACKER_ID", default="G-OOPS")
 #GA_DOMAIN = os.getenv("GA_DOMAIN", default="http://localhost:5000") # in production set to "________"
 
 
-def create_app(firebase_service=None):
+def create_app(spreadsheet_service=None):
 
-    if not firebase_service:
-        firebase_service = FirebaseService()
+    if not spreadsheet_service:
+        spreadsheet_service = SpreadsheetService()
 
     #
     # INIT
@@ -86,7 +86,7 @@ def create_app(firebase_service=None):
     # SERVICES
     #
 
-    app.config["FIREBASE_SERVICE"] = firebase_service
+    app.config["SPREADSHEET_SERVICE"] = spreadsheet_service
 
     #
     # ROUTES
