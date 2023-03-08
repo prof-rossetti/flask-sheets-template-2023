@@ -52,7 +52,7 @@ class SpreadsheetService():
         return self.doc.worksheet(sheet_name)
 
 
-    def get_records(self, sheet_name="products"):
+    def get_records(self, sheet_name):
         print(f"GETTING RECORDS FROM SHEET: '{sheet_name}'")
         sheet = self.get_sheet(sheet_name) #> <class 'gspread.models.Worksheet'>
         records = sheet.get_all_records() #> <class 'list'>
@@ -80,6 +80,21 @@ class SpreadsheetService():
         return response
 
 
+
+    # PRODUCT SPECIFIC STUFF
+
+    def seed_products(self, default_products=None):
+        sheet, products = self.get_records("products")
+        if not any(products):
+            default_products = default_products or [
+                {'id': 1, 'name': 'Strawberries', 'description': 'Juicy organic strawberries.', 'price': 4.99, 'url': 'https://picsum.photos/id/1080/360/200'},
+                {'id': 2, 'name': 'Cup of Tea', 'description': 'An individually-prepared tea or coffee of choice.', 'price': 3.49, 'url': 'https://picsum.photos/id/225/360/200'},
+                {'id': 3, 'name': 'Textbook', 'description': 'It has all the answers.', 'price': 129.99, 'url': 'https://picsum.photos/id/24/360/200'}
+            ]
+            print("SEEDING DEFAULT PRODUCTS...")
+            # sheet interface likes list of lists format, make sure all values are in the right order!
+            new_rows = [Product(attrs).to_row for attrs in DEFAULT_PRODUCTS]
+            sheet.insert_rows(new_rows, row=2) # start on second row, below headers
 
 
 
@@ -140,23 +155,9 @@ if __name__ == "__main__":
 
     ss = SpreadsheetService()
 
+    ss.seed_products()
+
     sheet, records = ss.get_records("products")
-    if not any(records):
-        print("----------------------")
-        print(f"SEEDING PRODUCTS...")
-        DEFAULT_PRODUCTS = [
-            {'id': 1, 'name': 'Strawberries', 'description': 'Juicy organic strawberries.', 'price': 4.99, 'url': 'https://picsum.photos/id/1080/360/200'},
-            {'id': 2, 'name': 'Cup of Tea', 'description': 'An individually-prepared tea or coffee of choice.', 'price': 3.49, 'url': 'https://picsum.photos/id/225/360/200'},
-            {'id': 3, 'name': 'Textbook', 'description': 'It has all the answers.', 'price': 129.99, 'url': 'https://picsum.photos/id/24/360/200'}
-        ]
-        # sheet interface likes list of lists format, make sure all values are in the right order!
-        #new_rows = [list(product.values()) for product in DEFAULT_PRODUCTS]
-        new_rows = [Product(attrs).to_row for attrs in DEFAULT_PRODUCTS]
-        next_row_number = len(records) + 2 # number of records, plus header row, plus one
-        sheet.insert_rows(new_rows, row=next_row_number) # ) # inherit_from_before=True
-
-        sheet, records = ss.get_records("products")
-
 
     for record in records:
         print("-----")
