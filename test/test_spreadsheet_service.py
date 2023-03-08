@@ -1,9 +1,15 @@
 from datetime import datetime, timezone
 
 from gspread import Spreadsheet as Document, Worksheet
+from dotenv import load_dotenv
+import pytest
 
 from app.spreadsheet_service import SpreadsheetService
 
+load_dotenv()
+
+CI_ENV = (os.getenv("CI", default="false") == "true")
+CI_SKIP_MESSAGE = "taking a lighter touch to testing on the CI server, to reduce API usage and prevent rate limits"
 
 
 def test_generate_timestamp():
@@ -32,10 +38,12 @@ def test_parse_timestamp():
 # READING DATA
 #
 
+@pytest.mark.skipif(CI_ENV, reason=CI_SKIP_MESSAGE)
 def test_document(ss):
     assert isinstance(ss.doc, Document)
 
 
+@pytest.mark.skipif(CI_ENV, reason=CI_SKIP_MESSAGE)
 def test_get_sheet(ss):
     sheet = ss.get_sheet("products")
     assert isinstance(sheet, Worksheet)
@@ -45,6 +53,7 @@ def test_get_sheet(ss):
 #    assert isinstance(sheet, Worksheet)
 #    assert isinstance(products, list)
 
+@pytest.mark.skipif(CI_ENV, reason=CI_SKIP_MESSAGE)
 def test_get_products(ss):
     sheet, products = ss.get_records("products")
     assert isinstance(sheet, Worksheet)
@@ -52,12 +61,14 @@ def test_get_products(ss):
     assert [p["name"] for p in products] == ["Strawberries", "Cup of Tea", "Textbook"]
     assert [p["id"] for p in products] == [1,2,3]
 
+@pytest.mark.skipif(CI_ENV, reason=CI_SKIP_MESSAGE)
 def test_get_orders(ss):
     sheet, orders = ss.get_records("orders")
     assert isinstance(sheet, Worksheet)
     assert not any(orders)
 
 
+@pytest.mark.skipif(CI_ENV, reason=CI_SKIP_MESSAGE)
 def test_destroy_all(ss):
     sheet, records = ss.get_records("products")
     assert len(records) == 3
@@ -72,6 +83,7 @@ def test_destroy_all(ss):
 # WRITING DATA
 #
 
+@pytest.mark.skipif(CI_ENV, reason=CI_SKIP_MESSAGE)
 def test_create_product(ss):
 
     sheet, products = ss.get_records("products")
@@ -93,6 +105,7 @@ def test_create_product(ss):
 
 
 
+@pytest.mark.skipif(CI_ENV, reason=CI_SKIP_MESSAGE)
 def test_create_order(ss):
     sheet, orders = ss.get_records("orders")
     assert not any(orders)
@@ -107,8 +120,3 @@ def test_create_order(ss):
     assert order["product_id"] == 3
     assert order["user_email"] == "example@test.com"
     assert isinstance(order["created_at"], datetime)
-
-
-
-
-# service.create_order(user_email=current_user["email"], product_info=product_info)

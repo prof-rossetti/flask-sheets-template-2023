@@ -116,6 +116,21 @@ Run the local web server (then visit localhost:5000 in a browser):
 FLASK_APP=web_app flask run
 ```
 
+## Testing
+
+Run tests:
+
+```sh
+pytest
+```
+
+> NOTE: we are using a live sheet for testing, so to avoid API rate limits, we are waiting / sleeping between each test, which makes the tests a bit slow for now
+
+
+## CI
+
+See more information about the [CI](/admin/CI.md) build process.
+
 ## Deploying
 
 See the [Deployer's Guide](/admin/RENDER.md) for instructions on deploying to a production server hosted by Render.
