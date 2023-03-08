@@ -24,6 +24,9 @@ GOOGLE_SHEETS_DOCUMENT_ID = os.getenv("GOOGLE_SHEETS_DOCUMENT_ID", default="OOPS
 
 
 class SpreadsheetService:
+    # TODO: consider implementing a locking mechanism on sheet writes, to prevent overwriting (if it becomes an issue)
+    # ... however we know that if we want a more serious database solution, we would choose SQL database (and this app is just a small scale demo)
+
     def __init__(self, credentials_filepath=GOOGLE_CREDENTIALS_FILEPATH, document_id=GOOGLE_SHEETS_DOCUMENT_ID):
         print("INITIALIZING NEW SPREADSHEET SERVICE...")
 
@@ -34,48 +37,51 @@ class SpreadsheetService:
 
         self.document_id = document_id
 
-
+        # TODO: consider storing and caching the latest version of each sheet, given the small number of sheets
+        # ... showing preference for speed over brevity
         #self.products_sheet = None
         #self.orders_sheet = None
 
-
-    @property
-    def doc(self):
-        """note: this will make an API call each time, to get the new data"""
-        return self.client.open_by_key(self.document_id) #> <class 'gspread.models.Spreadsheet'>
-
-    @classmethod
-    def generate_timestamp(cls):
+    @staticmethod
+    def generate_timestamp():
         return datetime.now(tz=timezone.utc)
 
-    @classmethod
-    def parse_timestamp(cls, ts:str):
+    @staticmethod
+    def parse_timestamp(ts:str):
         """
             ts (str) : a timestamp string like '2023-03-08 19:59:16.471152+00:00'
         """
         date_format = "%Y-%m-%d %H:%M:%S.%f%z"
         return datetime.strptime(ts, date_format)
 
+    # READING DATA
+    # ... TODO: consider passing the sheet or the sheet name, and getting the sheet only if necessary
 
+    @property
+    def doc(self):
+        """note: this will make an API call each time, to get the new data"""
+        return self.client.open_by_key(self.document_id) #> <class 'gspread.models.Spreadsheet'>
 
     def get_sheet(self, sheet_name):
         return self.doc.worksheet(sheet_name)
 
     def get_records(self, sheet_name):
+        """Gets all records from a sheet,
+            converts datetime columns back to Python datetime objects
+        """
         #print(f"GETTING RECORDS FROM SHEET: '{sheet_name}'")
         sheet = self.get_sheet(sheet_name) #> <class 'gspread.models.Worksheet'>
         records = sheet.get_all_records() #> <class 'list'>
         for record in records:
             if record.get("created_at"):
-                # give us datetime objects please
                 record["created_at"] = self.parse_timestamp(record["created_at"])
         return sheet, records
 
-
-
     def destroy_all(self, sheet_name):
+        """Removes all records from a given sheet, except the header row."""
         sheet, records = self.get_records(sheet_name)
-        # start on the second row, and delete one more than the number of records, to account for the header row
+        # start on the second row, and delete one more than the number of records,
+        # ... to account for the header row
         sheet.delete_rows(start_index=2, end_index=len(records)+1)
 
 
@@ -111,22 +117,6 @@ class SpreadsheetService:
 
 
     # PRODUCT SPECIFIC STUFF
-
-    def seed_products(self, default_products=None):
-        sheet, products = self.get_records("products")
-        if not any(products):
-            default_products = default_products or [
-                {'id': 1, 'name': 'Strawberries', 'description': 'Juicy organic strawberries.', 'price': 4.99, 'url': 'https://picsum.photos/id/1080/360/200'},
-                {'id': 2, 'name': 'Cup of Tea', 'description': 'An individually-prepared tea or coffee of choice.', 'price': 3.49, 'url': 'https://picsum.photos/id/225/360/200'},
-                {'id': 3, 'name': 'Textbook', 'description': 'It has all the answers.', 'price': 129.99, 'url': 'https://picsum.photos/id/24/360/200'}
-            ]
-            for default_product in default_products:
-                default_product["created_at"] = self.generate_timestamp()
-
-            print("SEEDING DEFAULT PRODUCTS...")
-            # sheet interface likes list of lists format, make sure all values are in the right order!
-            new_rows = [Product(attrs).to_row for attrs in default_products]
-            sheet.insert_rows(new_rows, row=2) # start on second row, below headers
 
 
 
@@ -170,23 +160,67 @@ class SpreadsheetService:
     #        return None
 
 
+    # WRITING DATA
 
-    #def create_records(self, sheet_name, new_records):
-    #    pass
+    def seed_products(self):
+        sheet, products = self.get_records("products")
+        if not any(products):
+            DEFAULT_PRODUCTS = [
+                {'id': 1, 'name': 'Strawberries', 'description': 'Juicy organic strawberries.', 'price': 4.99, 'url': 'https://picsum.photos/id/1080/360/200'},
+                {'id': 2, 'name': 'Cup of Tea', 'description': 'An individually-prepared tea or coffee of choice.', 'price': 3.49, 'url': 'https://picsum.photos/id/225/360/200'},
+                {'id': 3, 'name': 'Textbook', 'description': 'It has all the answers.', 'price': 129.99, 'url': 'https://picsum.photos/id/24/360/200'}
+            ]
+            self.create_products(DEFAULT_PRODUCTS)
 
-    def create_product(self, new_product):
-        new_product["created_at"] = self.generate_timestamp()
-
+    def create_products(self, new_products:list):
         sheet, products = self.get_records("products")
         next_row_number = len(products) + 2 # plus headers plus one
 
-        next_id = max([p["id"] for p in products]) + 1
-        new_product["id"] = next_id
-        new_product["created_at"] = self.generate_timestamp()
+        if any(products):
+            product_ids = [p["id"] for p in products]
+            next_id = max(product_ids) + 1
+        else:
+            next_id = 1
 
-        new_row = Product(new_product).to_row
-        sheet.insert_row(new_row, index=next_row_number)
+        new_rows = []
+        for new_product in new_products:
+            new_product["id"] = next_id
+            new_product["created_at"] = self.generate_timestamp()
+            new_row = Product(new_product).to_row
+            new_rows.append(new_row)
 
+            next_id += 1
+
+        sheet.insert_rows(new_rows, row=next_row_number)
+
+    def create_product(self, new_product:dict):
+        self.create_products([new_product])
+
+
+    def create_orders(self, new_orders:list):
+        sheet, records = self.get_records("orders")
+        next_row_number = len(records) + 2 # plus headers plus one
+
+        # auto-increment integer identifier
+        if any(records):
+            existing_ids = [r["id"] for r in records]
+            next_id = max(existing_ids) + 1
+        else:
+            next_id = 1
+
+        new_rows = []
+        for new_order in new_orders:
+            new_order["id"] = next_id
+            new_order["created_at"] = self.generate_timestamp()
+            new_row = Order(new_order).to_row
+            new_rows.append(new_row)
+
+            next_id += 1
+
+        sheet.insert_rows(new_rows, row=next_row_number)
+
+    def create_order(self, new_order:dict):
+        self.create_orders([new_order])
 
 
 
@@ -198,7 +232,6 @@ class SpreadsheetService:
     #    next_row_number = len(orders) + 2 # plus headers plus one
 #
     #    new_row = Order(new_order).to_row
-    #    sheet.insert_row(new_rows, row=next_row_number)
 
 
 

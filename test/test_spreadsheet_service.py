@@ -4,22 +4,20 @@ from gspread import Spreadsheet as Document, Worksheet
 
 from app.spreadsheet_service import SpreadsheetService
 
-def test_generate_timestamp(ss):
-    # class method for timestamp generation
-    assert isinstance(SpreadsheetService.generate_timestamp(), datetime)
 
-    dt = ss.generate_timestamp()
+
+def test_generate_timestamp():
+    #dt = ss.generate_timestamp()
+    dt = SpreadsheetService.generate_timestamp()
     assert isinstance(dt, datetime)
-    assert dt.tzinfo == datetime.timezone.utc
+    assert dt.tzinfo == timezone.utc
 
 
 
-def test_parse_timestamp(ss):
-    # class method for timestamp generation
-    assert isinstance(SpreadsheetService.generate_timestamp(), datetime)
-
+def test_parse_timestamp():
     example_ts = "2023-03-08 19:59:16.471152+00:00"
-    dt = ss.parse_timestamp(example_ts)
+    #dt = ss.parse_timestamp(example_ts)
+    dt = SpreadsheetService.parse_timestamp(example_ts)
     assert isinstance(dt, datetime)
     assert dt.year == 2023
     assert dt.month == 3
@@ -30,6 +28,9 @@ def test_parse_timestamp(ss):
     assert dt.tzinfo == timezone.utc
 
 
+#
+# READING DATA
+#
 
 def test_document(ss):
     assert isinstance(ss.doc, Document)
@@ -39,10 +40,10 @@ def test_get_sheet(ss):
     sheet = ss.get_sheet("products")
     assert isinstance(sheet, Worksheet)
 
-def test_get_records(ss):
-    sheet, products = ss.get_records("products")
-    assert isinstance(sheet, Worksheet)
-    assert isinstance(products, list)
+#def test_get_records(ss):
+#    sheet, products = ss.get_records("products")
+#    assert isinstance(sheet, Worksheet)
+#    assert isinstance(products, list)
 
 def test_get_products(ss):
     sheet, products = ss.get_records("products")
@@ -67,6 +68,9 @@ def test_destroy_all(ss):
     assert not any(records)
 
 
+#
+# WRITING DATA
+#
 
 def test_create_product(ss):
 
@@ -93,14 +97,16 @@ def test_create_order(ss):
     sheet, orders = ss.get_records("orders")
     assert not any(orders)
 
-    ss.create_order({"user_email": "example@test.com", "product_id": 1})
+    ss.create_order({"user_email": "example@test.com", "product_id": 3})
 
     sheet, orders = ss.get_records("orders")
     assert len(orders) == 1
 
     order = orders[0]
-    breakpoint()
-    #assert isinstance(order["created_at"], datetime)
+    assert order["id"] == 1
+    assert order["product_id"] == 3
+    assert order["user_email"] == "example@test.com"
+    assert isinstance(order["created_at"], datetime)
 
 
 
