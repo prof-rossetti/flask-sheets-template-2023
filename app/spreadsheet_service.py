@@ -160,6 +160,12 @@ class SpreadsheetService:
     #        return None
 
 
+
+    def get_user_orders(self, user_email):
+        sheet, orders = self.get_records("orders")
+        return [order for order in orders if order["user_email"] == user_email]
+
+
     # WRITING DATA
 
     def seed_products(self):

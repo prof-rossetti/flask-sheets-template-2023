@@ -1,3 +1,4 @@
+import os
 from datetime import datetime, timezone
 
 from gspread import Spreadsheet as Document, Worksheet
@@ -120,3 +121,29 @@ def test_create_order(ss):
     assert order["product_id"] == 3
     assert order["user_email"] == "example@test.com"
     assert isinstance(order["created_at"], datetime)
+
+
+
+
+@pytest.mark.skipif(CI_ENV, reason=CI_SKIP_MESSAGE)
+def test_get_user_orders(ss):
+    user_email = "example@test.com"
+
+    user_orders = ss.get_user_orders(user_email)
+    assert not any(user_orders)
+
+    ss.create_orders([
+        {"user_email": user_email, "product_id": 2},
+        {"user_email": user_email, "product_id": 2},
+        {"user_email": user_email, "product_id": 2},
+        {"user_email": "other@yep.com", "product_id": 2},
+        {"user_email": "other@yep.com", "product_id": 1},
+        {"user_email": "other@yep.com", "product_id": 3},
+    ])
+
+    user_orders = ss.get_user_orders(user_email)
+    assert len(user_orders) == 3
+    assert [o["id"] for o in user_orders] == [1,2,3]
+    assert [o["product_id"] for o in user_orders] == [2,2,2]
+    assert [o["user_email"] for o in user_orders] == [user_email, user_email, user_email]
+    assert [isinstance(o["created_at"], datetime) for o in user_orders] == [True, True, True]

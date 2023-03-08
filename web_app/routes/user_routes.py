@@ -15,7 +15,7 @@ def orders():
     print("USER ORDERS...")
     current_user = session.get("current_user")
     service = current_app.config["SPREADSHEET_SERVICE"]
-    orders = service.fetch_user_orders(current_user["email"])
+    orders = service.get_user_orders(current_user["email"])
     return render_template("user_orders.html", orders=orders)
 
 
