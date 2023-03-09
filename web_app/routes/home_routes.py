@@ -13,6 +13,6 @@ def about():
 
 @home_routes.route("/products")
 def products():
-    service = current_app.config["FIREBASE_SERVICE"]
-    products = service.fetch_products()
+    service = current_app.config["SPREADSHEET_SERVICE"]
+    products = service.get_products()
     return render_template("products.html", products=products)

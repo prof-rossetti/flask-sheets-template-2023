@@ -53,4 +53,4 @@ jobs:
         #GOOGLE_APPLICATION_CREDENTIALS: ${{ steps.auth.outputs.credentials_file_path }}
         GOOGLE_CREDENTIALS_FILEPATH: ${{ steps.auth.outputs.credentials_file_path }}
       run: |
-        pytest
+        CI=true TEST_SLEEP=20 pytest
