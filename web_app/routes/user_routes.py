@@ -27,20 +27,20 @@ def create_order():
     form_data = dict(request.form)
     print("FORM DATA:", form_data)
     product_id = form_data["product_id"]
-    #product_info = {
-    #    "id": product_id,
-    #    "name": form_data["product_name"],
-    #    "description": form_data["product_description"],
-    #    "price": form_data["product_price"],
-    #    "url": form_data["product_url"],
-    #}
+    product_name = form_data["product_name"]
+    product_price = form_data["product_price"]
 
     current_user = session.get("current_user")
     user_email = current_user["email"]
 
     service = current_app.config["SPREADSHEET_SERVICE"]
     try:
-        new_order = {"user_email": user_email, "product_id": product_id}
+        new_order = {
+            "user_email": user_email,
+            "product_id": int(product_id),
+            "product_name": product_name,
+            "product_price": float(product_price)
+        }
         service.create_order(new_order)
         flash(f"Order received!", "success")
         return redirect("/user/orders")

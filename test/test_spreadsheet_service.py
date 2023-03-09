@@ -110,15 +110,22 @@ def test_create_order(ss):
     sheet, orders = ss.get_records("orders")
     assert not any(orders)
 
-    ss.create_order({"user_email": "example@test.com", "product_id": 3})
+    ss.create_order({
+        "user_email": "example@test.com",
+        "product_id": 3,
+        "product_name": "Test Product",
+        "product_price": 4.99
+    })
 
     sheet, orders = ss.get_records("orders")
     assert len(orders) == 1
 
     order = orders[0]
     assert order["id"] == 1
-    assert order["product_id"] == 3
     assert order["user_email"] == "example@test.com"
+    assert order["product_id"] == 3
+    assert order["product_name"] == "Test Product"
+    assert order["product_price"] == 4.99
     assert isinstance(order["created_at"], datetime)
 
 
@@ -132,17 +139,19 @@ def test_get_user_orders(ss):
     assert not any(user_orders)
 
     ss.create_orders([
-        {"user_email": user_email, "product_id": 2},
-        {"user_email": user_email, "product_id": 2},
-        {"user_email": user_email, "product_id": 2},
-        {"user_email": "other@yep.com", "product_id": 2},
-        {"user_email": "other@yep.com", "product_id": 1},
-        {"user_email": "other@yep.com", "product_id": 3},
+        {"user_email": user_email,      "product_id": 2, "product_name": "Product 2", "product_price": 4.99},
+        {"user_email": user_email,      "product_id": 2, "product_name": "Product 2", "product_price": 4.99},
+        {"user_email": user_email,      "product_id": 2, "product_name": "Product 2", "product_price": 4.99},
+        {"user_email": "other@yep.com", "product_id": 2, "product_name": "Product 2", "product_price": 4.99},
+        {"user_email": "other@yep.com", "product_id": 1, "product_name": "Product 1", "product_price": 5.99},
+        {"user_email": "other@yep.com", "product_id": 3, "product_name": "Product 3", "product_price": 6.99},
     ])
 
     user_orders = ss.get_user_orders(user_email)
     assert len(user_orders) == 3
     assert [o["id"] for o in user_orders] == [1,2,3]
-    assert [o["product_id"] for o in user_orders] == [2,2,2]
     assert [o["user_email"] for o in user_orders] == [user_email, user_email, user_email]
+    assert [o["product_id"] for o in user_orders] == [2,2,2]
+    assert [o["product_name"] for o in user_orders] == ["Product 2", "Product 2", "Product 2"]
+    assert [o["product_price"] for o in user_orders] == [4.99,4.99,4.99]
     assert [isinstance(o["created_at"], datetime) for o in user_orders] == [True, True, True]
