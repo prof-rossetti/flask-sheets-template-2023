@@ -17,12 +17,15 @@ Specify start command:
 gunicorn "web_app:create_app()"
 ```
 
+Choose instance type of "free".
+
 Set environment variables:
 
 ```sh
 GOOGLE_CLIENT_ID="______.apps.googleusercontent.com"
 GOOGLE_CLIENT_SECRET="______"
 GOOGLE_CREDENTIALS_FILEPATH="/etc/secrets/google-credentials.json"
+GOOGLE_SHEETS_DOCUMENT_ID="___________"
 SECRET_KEY="YOUR SECRET HERE"
 ```
 
