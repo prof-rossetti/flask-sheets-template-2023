@@ -84,82 +84,6 @@ class SpreadsheetService:
         # ... to account for the header row
         sheet.delete_rows(start_index=2, end_index=len(records)+1)
 
-
-    #def insert_records(self, sheet):
-    #    pass
-
-
-
-
-
-
-
-    #def get_record_by_id(self, sheet_name, record_id):
-    #    return True # TODO
-
-
-
-    #def insert_record(self, sheet_name, record):
-    #    sheet = self.get_sheet(sheet_name)
-    #    response = sheet.insert_row(record)
-    #    print("INSERT RECORD RESPONSE")
-    #    print(response)
-    #    return response
-
-
-    #def insert_records(self, sheet_name, records):
-    #    sheet = self.get_sheet(sheet_name)
-    #    response = sheet.insert_rows(records)
-    #    print("INSERT RECORDS RESPONSE")
-    #    print(response)
-    #    return response
-
-
-
-    # PRODUCT SPECIFIC STUFF
-
-
-
-    #def create_product(self, product_attributes):
-    #    print("NEW PRODUCT ATTRIBUTES:", product_attributes)
-#
-    #    sheet, products = self.get_records("products")
-    #    print(f"DETECTED {len(products)} EXISTING PRODUCTS")
-    #    next_row_number = len(products) + 2 # number of records, plus a header row, plus one
-#
-    #    if any(products):
-    #        product_ids = [int(p["id"]) for p in products]
-    #        next_id = max(product_ids) + 1
-    #    else:
-    #        next_id = 1
-#
-    #    new_product = {
-    #        "id": next_id,
-    #        "name": product_attributes["name"],
-    #        "department": product_attributes["department"],
-    #        "price": float(product_attributes["price"]),
-    #        "availability_date": product_attributes["availability_date"],
-    #        "img_url": product_attributes["img_url"]
-    #    }
-    #    next_row = list(new_product.values()) #> [13, 'Product CLI', 'snacks', 4.99, '2019-01-01']
-    #    response = sheet.insert_row(next_row, next_row_number)
-    #    return response
-
-
-
-    #def get_product(self, product_id):
-    #    """
-    #    Will return None if product identifier not found in the list.
-    #    Otherwise will return the product as a dictionary.
-    #    """
-    #    sheet, products = self.get_records("products")
-    #    matching_products = [p for p in products if str(p["id"]) == str(product_id)]
-    #    try:
-    #        return matching_products[0]
-    #    except IndexError:
-    #        return None
-
-
     def get_products(self):
         _, products = self.get_records("products")
         return products
@@ -186,32 +110,23 @@ class SpreadsheetService:
             self.create_products(DEFAULT_PRODUCTS)
 
     def create_products(self, new_products:list):
-        sheet, products = self.get_records("products")
-        next_row_number = len(products) + 2 # plus headers plus one
-
-        if any(products):
-            product_ids = [p["id"] for p in products]
-            next_id = max(product_ids) + 1
-        else:
-            next_id = 1
-
-        new_rows = []
-        for new_product in new_products:
-            new_product["id"] = next_id
-            new_product["created_at"] = self.generate_timestamp()
-            new_row = Product(new_product).to_row
-            new_rows.append(new_row)
-
-            next_id += 1
-
-        sheet.insert_rows(new_rows, row=next_row_number)
+        self.create_records("products", new_products)
 
     def create_product(self, new_product:dict):
-        self.create_products([new_product])
-
+        self.create_records("products", [new_product])
 
     def create_orders(self, new_orders:list):
-        sheet, records = self.get_records("orders")
+        self.create_records("orders", new_orders)
+
+    def create_order(self, new_order:dict):
+        self.create_records("orders", [new_order])
+
+
+
+    def create_records(self, sheet_name:str, new_records:list):
+        model_class = {"products": Product, "orders": Order}[sheet_name]
+
+        sheet, records = self.get_records(sheet_name)
         next_row_number = len(records) + 2 # plus headers plus one
 
         # auto-increment integer identifier
@@ -222,29 +137,16 @@ class SpreadsheetService:
             next_id = 1
 
         new_rows = []
-        for new_order in new_orders:
-            new_order["id"] = next_id
-            new_order["created_at"] = self.generate_timestamp()
-            new_row = Order(new_order).to_row
+        for new_record in new_records:
+            new_record["id"] = next_id
+            new_record["created_at"] = self.generate_timestamp()
+            new_row = model_class(new_record).to_row
             new_rows.append(new_row)
 
             next_id += 1
 
         sheet.insert_rows(new_rows, row=next_row_number)
 
-    def create_order(self, new_order:dict):
-        self.create_orders([new_order])
-
-
-
-
-    #def create_order(self, new_order):
-    #    new_order["created_at"] = self.generate_timestamp()
-#
-    #    sheet, orders = self.get_records("orders")
-    #    next_row_number = len(orders) + 2 # plus headers plus one
-#
-    #    new_row = Order(new_order).to_row
 
 
 

@@ -10,6 +10,8 @@ Authlib #==1.0.0
 
 # database (google sheets):
 gspread
+#google-auth==2.16.2
+#google-auth-oauthlib==1.0.0
 
 
 # production web server:
