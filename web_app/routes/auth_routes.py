@@ -57,7 +57,7 @@ def google_oauth_callback():
         session["current_user"] = user_info
 
         # store the user info in the database:
-        #service = current_app.config["FIREBASE_SERVICE"]
+        #service = current_app.config["SPREADSHEET_SERVICE"]
         #service.update_user({
         #    "email": user_info["email"],
         #    "verified": user_info["email_verified"],
