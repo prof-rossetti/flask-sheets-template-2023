@@ -1,7 +1,3 @@
-References:
-
-  + https://docs.gspread.org/en/latest/oauth2.html
-
 
 ## Google Sheets API Setup
 
